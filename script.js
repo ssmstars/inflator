@@ -142,14 +142,35 @@ class RetirementCalculator {
         };
 
         this.helpTexts = {
+            // Input help
             'current-age': 'Your current age in years. This determines how many years you have to save for retirement.',
             'retirement-age': 'The age at which you plan to retire and start using your retirement savings.',
             'life-expectancy': 'Your expected lifespan. This helps calculate how long your retirement funds need to last.',
-            'monthly-income': 'The monthly income you want during retirement in today\'s purchasing power.',
-            'inflation-rate': 'Expected annual inflation rate. Typically 2-4% in developed countries, 4-7% in developing countries.',
-            'pre-retirement-roi': 'Expected annual return on investments before retirement. Typically 6-10% for mixed portfolios.',
-            'post-retirement-roi': 'Expected annual return on investments during retirement. Usually lower than pre-retirement.',
-            'current-savings': 'Your current retirement savings amount. This will grow until retirement.'
+            'monthly-income': 'Desired monthly income during retirement in today\'s money. We adjust this for inflation up to retirement.',
+            'inflation-rate': 'Expected annual inflation. Higher inflation increases the income needed at retirement.',
+            'pre-retirement-roi': 'Expected average annual return before retirement, used to grow your savings and contributions.',
+            'post-retirement-roi': 'Expected average annual return after retirement, used to sustain withdrawals.',
+            'current-savings': 'Your current retirement savings. We project this to retirement using the pre-retirement ROI.',
+
+            // Results help
+            'result-monthly-savings': 'Monthly Savings Required: the amount you need to invest each month from now until retirement to close the funding gap.',
+            'result-years-to-retire': 'Years to Retirement: the number of years between your current age and your retirement age.',
+            'result-years-in-retirement': 'Years in Retirement: life expectancy minus retirement age; used to size the retirement corpus.',
+            'result-annual-income-needed': 'Annual Income Needed (Inflation-Adjusted): your desired monthly income grown by inflation until retirement, multiplied by 12.',
+            'result-total-funds-required': 'Total Funds Required at Retirement: the estimated corpus at retirement needed to fund withdrawals through your retirement years.',
+            'result-current-savings-future': 'Current Savings Future Value: your current savings grown to retirement using the pre-retirement ROI.',
+            'result-additional-funds': 'Additional Funds Needed: the gap between required corpus and projected value of current savings. If zero, you are funded.',
+            'result-total-savings-retirement': 'Total Savings at Retirement: summary of required corpus (target).'
+            ,
+            // Section help
+            'analysis-overview': 'Detailed Analysis: summarizes inputs, assumptions, key calculations, and savings strategy for clarity.',
+            'breakdown': 'Calculation Breakdown: shows how inputs and assumptions translate into the required corpus and savings.',
+            'chart-projection': 'Savings Growth Projection: visualizes current savings, monthly contributions, total growth, inflation-adjusted value, and target corpus over time.',
+            'report-overview': 'Comprehensive Report: a formatted view suitable for printing or saving as PDF, summarizing your plan.',
+            'report-summary': 'Executive Summary: highlights your monthly savings target and key milestones.',
+            'report-details': 'Detailed Financial Breakdown: tabular view of current vs. future values and required corpus.',
+            'report-recommendations': 'Personalized Recommendations: suggestions based on your savings rate, timeline, and assumptions.',
+            'report-disclaimer': 'Disclaimer: projections are estimates; real returns and inflation can vary. Consult a financial advisor for advice.'
         };
 
         this.initialize();
@@ -171,7 +192,7 @@ class RetirementCalculator {
         
         this.setupEventListeners();
         this.updateExchangeRates();
-        this.setupHelpSystem();
+    this.setupHelpSystem();
         this.loadSavedSettings();
         
         // Set default values based on currency
@@ -485,6 +506,11 @@ class RetirementCalculator {
         
         // Update report page
         this.updateReportPage(results);
+
+        // Re-attach tooltips and result info badges after DOM updates
+        this.attachResultTooltips();
+        this.attachResultInfoBadges();
+        this.attachSectionInfoBadges();
     }
 
     updateAnalysisPage(results) {
@@ -1159,20 +1185,140 @@ class RetirementCalculator {
     }
 
     setupHelpSystem() {
-        // Add help icons and popups
-        Object.keys(this.helpTexts).forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field && field.parentElement) {
-                const helpIcon = document.createElement('span');
-                helpIcon.className = 'help-icon';
-                helpIcon.innerHTML = '?';
-                helpIcon.title = this.helpTexts[fieldId];
-                helpIcon.addEventListener('click', () => {
-                    this.showHelpPopup(this.helpTexts[fieldId]);
-                });
-                
-                field.parentElement.appendChild(helpIcon);
+        // 1) Attach tooltips to existing info icons in the form
+        const infoIcons = document.querySelectorAll('.info-icon[data-info]');
+        infoIcons.forEach(icon => {
+            const key = icon.getAttribute('data-info');
+            const text = this.helpTexts[key];
+            if (text) {
+                icon.setAttribute('title', text);
+                icon.setAttribute('aria-label', text);
+                icon.style.cursor = 'help';
+                icon.addEventListener('click', () => this.showHelpPopup(text));
             }
+        });
+
+        // 2) Attach tooltips for key results
+        this.attachResultTooltips();
+
+    // 2b) Add explicit info badges next to Results titles
+    this.attachResultInfoBadges();
+
+    // 2c) Add info badges to Analysis and Report section headers
+    this.attachSectionInfoBadges();
+
+        // 3) General control tooltips
+        const generalTips = [
+            { sel: '#currencySelect', text: 'Choose your working currency. Figures will be displayed using this currency and approximate rates.' },
+            { sel: '.calculate-btn', text: 'Compute your plan using the inputs provided.' },
+            { sel: '#export-results', text: 'Export a CSV summary of your inputs and results.' },
+            { sel: '#save-scenario', text: 'Save this scenario to your browser for later comparison.' },
+            { sel: '#downloadChart', text: 'Download the savings projection chart as a PNG image.' },
+            { sel: '#print-report', text: 'Open a printable view of the report. You can also save it as PDF.' },
+            { sel: '#download-pdf', text: 'Generate a PDF by printing the report (uses your browser’s print to PDF).' }
+        ];
+        generalTips.forEach(t => {
+            const el = document.querySelector(t.sel);
+            if (el) el.setAttribute('title', t.text);
+        });
+
+        // 4) Navigation button titles
+        const navMap = {
+            'page-input': 'Enter your financial details and assumptions',
+            'page-results': 'See your monthly savings target and key figures',
+            'page-analysis': 'Dive into breakdowns and the projection chart',
+            'page-report': 'View a printable report with recommendations'
+        };
+        document.querySelectorAll('.page-navigation .nav-btn').forEach(btn => {
+            const m = btn.getAttribute('onclick')?.match(/showPage\('([^']+)'\)/);
+            const pageId = m?.[1];
+            if (pageId && navMap[pageId]) btn.setAttribute('title', navMap[pageId]);
+        });
+    }
+
+    attachResultTooltips() {
+        const map = new Map([
+            ['#monthlySavings', this.helpTexts['result-monthly-savings']],
+            ['#yearsToRetirement', this.helpTexts['result-years-to-retire']],
+            ['#yearsInRetirement', this.helpTexts['result-years-in-retirement']],
+            ['#annualIncomeNeeded', this.helpTexts['result-annual-income-needed']],
+            ['#totalFundsRequired', this.helpTexts['result-total-funds-required']],
+            ['#currentSavingsFuture', this.helpTexts['result-current-savings-future']],
+            ['#additionalFundsNeeded', this.helpTexts['result-additional-funds']],
+            ['#totalSavingsAtRetirement', this.helpTexts['result-total-savings-retirement']]
+        ]);
+
+        map.forEach((text, sel) => {
+            const el = document.querySelector(sel);
+            if (el && text) {
+                el.setAttribute('title', text);
+                const card = el.closest('.result-card');
+                if (card) card.setAttribute('title', text);
+            }
+        });
+    }
+
+    attachResultInfoBadges() {
+        const pairs = [
+            ['#monthlySavings', 'result-monthly-savings'],
+            ['#yearsToRetirement', 'result-years-to-retire'],
+            ['#yearsInRetirement', 'result-years-in-retirement'],
+            ['#annualIncomeNeeded', 'result-annual-income-needed'],
+            ['#totalFundsRequired', 'result-total-funds-required'],
+            ['#currentSavingsFuture', 'result-current-savings-future'],
+            ['#additionalFundsNeeded', 'result-additional-funds'],
+            ['#totalSavingsAtRetirement', 'result-total-savings-retirement']
+        ];
+
+        pairs.forEach(([sel, key]) => {
+            const el = document.querySelector(sel);
+            const text = this.helpTexts[key];
+            if (!el || !text) return;
+            const card = el.closest('.result-card');
+            const header = card?.querySelector('h3');
+            if (!header) return;
+            // Avoid duplicates
+            if (header.querySelector('.info-icon.result-info')) return;
+
+            const icon = document.createElement('span');
+            icon.className = 'info-icon result-info';
+            icon.textContent = '?';
+            icon.title = text;
+            icon.style.marginLeft = '8px';
+            icon.style.verticalAlign = 'middle';
+            icon.setAttribute('aria-label', text);
+            icon.addEventListener('click', () => this.showHelpPopup(text));
+
+            header.appendChild(icon);
+        });
+    }
+
+    attachSectionInfoBadges() {
+        const sections = [
+            { sel: '#page-analysis h2', key: 'analysis-overview' },
+            { sel: '.breakdown-section h3', key: 'breakdown' },
+            { sel: '.chart-header h3', key: 'chart-projection' },
+            { sel: '#page-report h2', key: 'report-overview' },
+            { sel: '.report-summary h4', key: 'report-summary' },
+            { sel: '.report-details h4', key: 'report-details' },
+            { sel: '.report-recommendations h4', key: 'report-recommendations' },
+            { sel: '.report-disclaimer h4', key: 'report-disclaimer' }
+        ];
+
+        sections.forEach(({ sel, key }) => {
+            const header = document.querySelector(sel);
+            const text = this.helpTexts[key];
+            if (!header || !text) return;
+            if (header.querySelector('.info-icon.section-info')) return; // idempotent
+
+            const icon = document.createElement('span');
+            icon.className = 'info-icon section-info';
+            icon.textContent = '?';
+            icon.title = text;
+            icon.style.marginLeft = '10px';
+            icon.setAttribute('aria-label', text);
+            icon.addEventListener('click', () => this.showHelpPopup(text));
+            header.appendChild(icon);
         });
     }
 
