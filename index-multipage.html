@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Retirement Planning Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Retirement Planning Calculator</h1>
+            <p>Plan your financial future with confidence - Multi-currency support</p>
+            
+            <!-- Navigation -->
+            <nav class="page-navigation">
+                <button class="nav-btn active" data-page="input">Financial Details</button>
+                <button class="nav-btn" data-page="results">Results</button>
+                <button class="nav-btn" data-page="analysis">Analysis</button>
+                <button class="nav-btn" data-page="report">Report</button>
+            </nav>
+            
+            <div class="currency-selector">
+                <label for="currencySelect">Select Currency:</label>
+                <select id="currencySelect">
+                    <option value="INR" selected>🇮🇳 Indian Rupee (INR)</option>
+                    <option value="USD">🇺🇸 US Dollar (USD)</option>
+                    <option value="EUR">🇪🇺 Euro (EUR)</option>
+                    <option value="GBP">🇬🇧 British Pound (GBP)</option>
+                    <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
+                    <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
+                    <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
+                    <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
+                </select>
+                <div id="exchangeRateInfo" class="exchange-rate-info"></div>
+            </div>
+        </header>
+
+        <div class="calculator-container">
+            <!-- Page 1: Financial Details Input -->
+            <div id="page-input" class="page-content active">
+                <form id="retirement-form" class="form-section full-width">
+                    <h2>Your Financial Details</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="currentAge">Current Age <span class="info-icon" data-info="current-age">?</span></label>
+                            <input type="number" id="currentAge" min="18" max="100" value="30" required>
+                            <span class="unit">years</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="retirementAge">Desired Retirement Age <span class="info-icon" data-info="retirement-age">?</span></label>
+                            <input type="number" id="retirementAge" min="50" max="100" value="65" required>
+                            <span class="unit">years</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lifeExpectancy">Life Expectancy <span class="info-icon" data-info="life-expectancy">?</span></label>
+                            <input type="number" id="lifeExpectancy" min="65" max="120" value="85" required>
+                            <span class="unit">years</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="monthlyIncome">Required Monthly Income in Retirement <span class="info-icon" data-info="monthly-income">?</span></label>
+                            <input type="number" id="monthlyIncome" min="0" step="1000" value="400000" required>
+                            <span class="unit" id="monthlyIncomeUnit">₹</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inflationRate">Expected Inflation Rate <span class="info-icon" data-info="inflation-rate">?</span></label>
+                            <input type="number" id="inflationRate" min="0" max="20" step="0.1" value="3.0" required>
+                            <span class="unit">%</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="preRetirementROI">Expected ROI (Pre-Retirement) <span class="info-icon" data-info="pre-retirement-roi">?</span></label>
+                            <input type="number" id="preRetirementROI" min="0" max="30" step="0.1" value="7.0" required>
+                            <span class="unit">%</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postRetirementROI">Expected ROI (Post-Retirement) <span class="info-icon" data-info="post-retirement-roi">?</span></label>
+                            <input type="number" id="postRetirementROI" min="0" max="30" step="0.1" value="4.0" required>
+                            <span class="unit">%</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currentSavings">Current Retirement Savings <span class="info-icon" data-info="current-savings">?</span></label>
+                            <input type="number" id="currentSavings" min="0" step="10000" value="4000000">
+                            <span class="unit" id="currentSavingsUnit">₹</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="calculate-btn">Calculate My Retirement Plan</button>
+                        <button type="button" class="next-page-btn" onclick="showPage('results')">View Results →</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Page 2: Results -->
+            <div id="page-results" class="page-content">
+                <div class="results-section full-width">
+                    <div class="results-header">
+                        <h2>Your Retirement Plan Results</h2>
+                        <div class="results-actions">
+                            <button id="export-results" class="btn btn-outline">Export Results</button>
+                            <button id="save-scenario" class="btn btn-outline">Save Scenario</button>
+                        </div>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <div class="result-card highlight">
+                            <h3>Monthly Savings Required</h3>
+                            <div class="result-value" id="monthlySavings">₹0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Years to Retirement</h3>
+                            <div class="result-value" id="yearsToRetirement">0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Years in Retirement</h3>
+                            <div class="result-value" id="yearsInRetirement">0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Annual Income Needed (Inflation-Adjusted)</h3>
+                            <div class="result-value" id="annualIncomeNeeded">₹0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Total Funds Required at Retirement</h3>
+                            <div class="result-value" id="totalFundsRequired">₹0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Current Savings Future Value</h3>
+                            <div class="result-value" id="currentSavingsFuture">₹0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Additional Funds Needed</h3>
+                            <div class="result-value" id="additionalFundsNeeded">₹0</div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>Total Savings at Retirement</h3>
+                            <div class="result-value" id="totalSavingsAtRetirement">₹0</div>
+                        </div>
+                    </div>
+
+                    <div class="page-navigation-bottom">
+                        <button class="prev-page-btn" onclick="showPage('input')">← Back to Details</button>
+                        <button class="next-page-btn" onclick="showPage('analysis')">View Analysis →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3: Analysis (Breakdown & Chart) -->
+            <div id="page-analysis" class="page-content">
+                <div class="analysis-section full-width">
+                    <h2>Detailed Analysis</h2>
+                    
+                    <div class="breakdown-section">
+                        <h3>Calculation Breakdown</h3>
+                        <div id="calculationBreakdown" class="breakdown-content">
+                            <p>Please calculate your retirement plan first by going to the Financial Details page.</p>
+                        </div>
+                    </div>
+
+                    <div class="chart-section">
+                        <h3>Savings Growth Projection</h3>
+                        <div class="chart-container">
+                            <canvas id="savingsChart" width="800" height="400"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="page-navigation-bottom">
+                        <button class="prev-page-btn" onclick="showPage('results')">← Back to Results</button>
+                        <button class="next-page-btn" onclick="showPage('report')">Generate Report →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4: Report -->
+            <div id="page-report" class="page-content">
+                <div class="report-section full-width">
+                    <h2>Comprehensive Report</h2>
+                    
+                    <div class="report-header">
+                        <div class="report-info">
+                            <h3>Retirement Planning Report</h3>
+                            <p>Generated on: <span id="report-date"></span></p>
+                            <p>Currency: <span id="report-currency"></span></p>
+                        </div>
+                        <div class="report-actions">
+                            <button id="print-report" class="btn btn-primary">Print Report</button>
+                            <button id="download-pdf" class="btn btn-outline">Download PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="report-content">
+                        <div class="report-summary">
+                            <h4>Executive Summary</h4>
+                            <div id="report-summary-content">
+                                <p>Your retirement planning analysis will appear here after calculating your plan.</p>
+                            </div>
+                        </div>
+
+                        <div class="report-details">
+                            <h4>Detailed Financial Breakdown</h4>
+                            <div id="report-details-content">
+                                <!-- Report content will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="report-recommendations">
+                            <h4>Personalized Recommendations</h4>
+                            <div id="report-recommendations-content">
+                                <!-- Recommendations will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="report-disclaimer">
+                            <h4>Important Disclaimer</h4>
+                            <p><strong>Disclaimer:</strong> This calculator provides estimates based on the assumptions you provide. 
+                            Actual returns and inflation rates may vary. This report is for informational purposes only and should not be considered as professional financial advice. Please consult with a qualified financial advisor for personalized recommendations.</p>
+                        </div>
+                    </div>
+
+                    <div class="page-navigation-bottom">
+                        <button class="prev-page-btn" onclick="showPage('analysis')">← Back to Analysis</button>
+                        <button class="home-page-btn" onclick="showPage('input')">Start New Calculation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Disclaimer:</strong> This calculator provides estimates based on the assumptions you provide. 
+            Actual returns and inflation rates may vary. Consult with a financial advisor for personalized advice.</p>
+        </footer>
+    </div>
+
+    <!-- Popup Modals -->
+    <div id="popup-overlay" class="popup-overlay">
+        <div id="popup-modal" class="popup-modal">
+            <div class="popup-header">
+                <h3 id="popup-title">Information</h3>
+                <button id="popup-close" class="popup-close">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div id="popup-body">Content goes here</div>
+                <div class="popup-actions">
+                    <button id="popup-confirm" class="btn btn-primary">OK</button>
+                    <button id="popup-cancel" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Calculating your retirement plan...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
