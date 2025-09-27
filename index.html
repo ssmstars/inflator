@@ -262,6 +262,22 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- App Popup Modal -->
+    <div id="app-popup" class="popup-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="popup-modal" role="document" aria-labelledby="popup-title">
+            <div class="popup-header">
+                <h3 id="popup-title">Notice</h3>
+                <button class="popup-close" id="popup-close-btn" aria-label="Close popup">×</button>
+            </div>
+            <div class="popup-content" id="popup-content">
+                <p></p>
+            </div>
+            <div class="popup-actions" id="popup-actions">
+                <button class="btn btn-primary" id="popup-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>

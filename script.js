@@ -4,28 +4,47 @@ let calculationResults = null;
 
 // Page Navigation Functions
 function showPage(pageId) {
+    console.log(`showPage called with pageId: ${pageId}`);
+    
+    // Check if the target page exists
+    const targetPage = document.getElementById(pageId);
+    if (!targetPage) {
+        console.error(`Page with ID ${pageId} not found!`);
+        return false;
+    }
+    
     // Hide all page contents
-    document.querySelectorAll('.page-content').forEach(page => {
+    const allPages = document.querySelectorAll('.page-content');
+    console.log(`Found ${allPages.length} page elements`);
+    
+    allPages.forEach(page => {
         page.classList.remove('active');
+        console.log(`Removed active class from ${page.id}`);
     });
     
     // Show selected page
-    document.getElementById(pageId).classList.add('active');
+    targetPage.classList.add('active');
+    console.log(`Added active class to ${pageId}`);
     
     // Update navigation buttons
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    const navButton = document.querySelector(`[onclick="showPage('${pageId}')"]`);
+    const navButton = document.querySelector(`.nav-btn[onclick="showPage('${pageId}')"]`);
     if (navButton) {
         navButton.classList.add('active');
+        console.log(`Updated navigation button for ${pageId}`);
+    } else {
+        console.warn(`Navigation button for ${pageId} not found`);
     }
     
     currentPage = pageId;
     
     // Update page navigation buttons
     updateNavigationButtons(pageId);
+    
+    return true;
 }
 
 function updateNavigationButtons(pageId) {
@@ -331,11 +350,15 @@ class RetirementCalculator {
             this.hideLoadingOverlay();
             console.log('Calculation completed successfully!');
 
-            // Auto-navigate to results page
-            setTimeout(() => {
-                console.log('Navigating to results page...');
-                showPage('page-results');
-            }, 1000);
+            // Immediately navigate to results
+            showPage('page-results');
+            // Optionally show a confirmation popup
+            if (typeof window.openPopup === 'function') {
+                window.openPopup('Your retirement plan has been calculated. You can review details in Results, Analysis, and Report tabs.', {
+                    title: 'Calculation Complete',
+                    primaryText: 'OK'
+                });
+            }
 
         } catch (error) {
             this.hideLoadingOverlay();
@@ -618,8 +641,13 @@ class RetirementCalculator {
     }
 
     generateChart(results) {
-        const ctx = document.getElementById('savingsChart');
-        if (!ctx) return;
+        const canvas = document.getElementById('savingsChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.warn('Unable to get 2D context for savingsChart');
+            return;
+        }
 
         const data = this.getFormData();
         const years = Array.from({length: results.yearsToRetirement + 1}, (_, i) => i);
@@ -1325,286 +1353,25 @@ class RetirementCalculator {
 
     // Modal functionality removed - chart displays inline only
 
-    // Fullscreen chart functionality removed - using inline chart only
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        borderWidth: 4,
-                        pointRadius: 5,
-                        pointHoverRadius: 10,
-                        pointBackgroundColor: '#22C55E',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#ffffff',
-                        pointHoverBorderColor: '#22C55E',
-                        pointHoverBorderWidth: 4
-                    },
-                    {
-                        label: '📈 Monthly Contributions',
-                        data: monthlySavingsGrowth,
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        borderWidth: 4,
-                        pointRadius: 5,
-                        pointHoverRadius: 10,
-                        pointBackgroundColor: '#3B82F6',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#ffffff',
-                        pointHoverBorderColor: '#3B82F6',
-                        pointHoverBorderWidth: 4
-                    },
-                    {
-                        label: '🚀 Total Savings Growth',
-                        data: totalSavingsGrowth,
-                        borderColor: '#9333EA',
-                        backgroundColor: 'rgba(147, 51, 234, 0.2)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 5,
-                        pointRadius: 6,
-                        pointHoverRadius: 12,
-                        pointBackgroundColor: '#9333EA',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#ffffff',
-                        pointHoverBorderColor: '#9333EA',
-                        pointHoverBorderWidth: 4
-                    },
-                    {
-                        label: '📊 Real Value (Inflation-Adjusted)',
-                        data: inflationAdjustedValue,
-                        borderColor: '#FB923C',
-                        backgroundColor: 'rgba(251, 146, 60, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        borderWidth: 4,
-                        borderDash: [12, 6],
-                        pointRadius: 5,
-                        pointHoverRadius: 10,
-                        pointBackgroundColor: '#FB923C',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#ffffff',
-                        pointHoverBorderColor: '#FB923C',
-                        pointHoverBorderWidth: 4
-                    },
-                    {
-                        label: '🎯 Target Required',
-                        data: targetLine,
-                        borderColor: '#EF4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        fill: false,
-                        tension: 0,
-                        borderWidth: 4,
-                        borderDash: [18, 8],
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#EF4444',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        top: 30,
-                        right: 30,
-                        bottom: 30,
-                        left: 30
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: `📊 Retirement Savings Projection - Full Screen View (${this.currencyConfig[this.currentCurrency].name})`,
-                        font: {
-                            size: 24,
-                            weight: 'bold',
-                            family: 'system-ui, -apple-system, sans-serif'
-                        },
-                        padding: 35,
-                        color: '#1F2937'
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            padding: 25,
-                            font: {
-                                size: 14,
-                                weight: '600',
-                                family: 'system-ui, -apple-system, sans-serif'
-                            },
-                            color: '#374151',
-                            boxWidth: 15,
-                            boxHeight: 15
-                        }
-                    },
-                    tooltip: {
-                        enabled: true,
-                        position: 'nearest',
-                        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                        titleColor: '#F9FAFB',
-                        bodyColor: '#F3F4F6',
-                        borderColor: '#6B7280',
-                        borderWidth: 2,
-                        cornerRadius: 15,
-                        displayColors: true,
-                        padding: 20,
-                        titleFont: {
-                            size: 16,
-                            weight: 'bold',
-                            family: 'system-ui, -apple-system, sans-serif'
-                        },
-                        bodyFont: {
-                            size: 14,
-                            family: 'system-ui, -apple-system, sans-serif'
-                        },
-                        footerFont: {
-                            size: 13,
-                            weight: 'bold',
-                            family: 'system-ui, -apple-system, sans-serif'
-                        },
-                        footerColor: '#FCD34D',
-                        usePointStyle: true,
-                        boxPadding: 8,
-                        caretPadding: 12,
-                        caretSize: 10,
-                        callbacks: {
-                            title: (tooltipItems) => {
-                                const year = tooltipItems[0].dataIndex;
-                                const age = data.currentAge + year;
-                                return `📅 Year ${year} (Age ${age})`;
-                            },
-                            label: (context) => {
-                                const value = context.parsed.y;
-                                const formattedValue = this.formatCurrency(value);
-                                
-                                if (context.datasetIndex === 4) {
-                                    return `🎯 ${context.dataset.label.replace('🎯 ', '')}: ${formattedValue}`;
-                                }
-                                
-                                const targetValue = results.totalFundsRequired;
-                                const percentage = ((value / targetValue) * 100).toFixed(1);
-                                return `${context.dataset.label}: ${formattedValue} (${percentage}% of target)`;
-                            },
-                            footer: (tooltipItems) => {
-                                const year = tooltipItems[0].dataIndex;
-                                const totalValue = totalSavingsGrowth[year];
-                                const targetValue = results.totalFundsRequired;
-                                
-                                if (totalValue >= targetValue) {
-                                    const surplus = totalValue - targetValue;
-                                    return `✅ Target achieved! Surplus: ${this.formatCurrency(surplus)}`;
-                                } else {
-                                    const shortfall = targetValue - totalValue;
-                                    return `⚠️ Shortfall: ${this.formatCurrency(shortfall)}`;
-                                }
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: '📅 Timeline (Years from Now)',
-                            font: {
-                                size: 18,
-                                weight: 'bold',
-                                family: 'system-ui, -apple-system, sans-serif'
-                            },
-                            color: '#374151',
-                            padding: 15
-                        },
-                        grid: {
-                            color: 'rgba(156, 163, 175, 0.2)',
-                            drawBorder: false,
-                            lineWidth: 1
-                        },
-                        ticks: {
-                            callback: function(value, index) {
-                                const year = index;
-                                const age = data.currentAge + year;
-                                
-                                if (year % 5 === 0 || year === results.yearsToRetirement) {
-                                    return [`Year ${year}`, `Age ${age}`];
-                                }
-                                return year % 2 === 0 ? `${year}` : '';
-                            },
-                            maxRotation: 0,
-                            color: '#6B7280',
-                            font: {
-                                size: 12,
-                                family: 'system-ui, -apple-system, sans-serif'
-                            },
-                            padding: 10
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: `💰 Amount (${this.currencyConfig[this.currentCurrency].symbol})`,
-                            font: {
-                                size: 18,
-                                weight: 'bold',
-                                family: 'system-ui, -apple-system, sans-serif'
-                            },
-                            color: '#374151',
-                            padding: 20
-                        },
-                        grid: {
-                            color: 'rgba(156, 163, 175, 0.15)',
-                            drawBorder: false,
-                            lineWidth: 1
-                        },
-                        ticks: {
-                            callback: (value) => {
-                                return this.formatCurrency(value);
-                            },
-                            color: '#6B7280',
-                            font: {
-                                size: 13,
-                                family: 'system-ui, -apple-system, sans-serif'
-                            },
-                            padding: 10,
-                            maxTicksLimit: 10
-                        },
-                        beginAtZero: true
-                    }
-                },
-                elements: {
-                    point: {
-                        hoverBackgroundColor: '#ffffff',
-                        hoverBorderWidth: 4,
-                        radius: 5,
-                        hitRadius: 10
-                    },
-                    line: {
-                        borderJoinStyle: 'round',
-                        borderCapStyle: 'round'
-                    }
-                },
-                animation: {
-                    duration: 1800,
-                    easing: 'easeInOutCubic'
-                }
-            }
+    // Test page navigation manually
+    testPageNavigation() {
+        console.log('Testing page navigation...');
+        console.log('Current page:', currentPage);
+        
+        const pages = ['page-input', 'page-results', 'page-analysis', 'page-report'];
+        pages.forEach(pageId => {
+            const page = document.getElementById(pageId);
+            console.log(`Page ${pageId}:`, page ? 'Found' : 'NOT FOUND');
         });
+        
+        const navButtons = document.querySelectorAll('.nav-btn');
+        console.log(`Found ${navButtons.length} navigation buttons`);
+        
+        // Try to navigate to results page directly
+        console.log('Attempting direct navigation to results page...');
+        return showPage('page-results');
     }
+
 
     downloadChart() {
         if (!this.chart) {
@@ -1627,7 +1394,7 @@ class RetirementCalculator {
             console.log('Chart downloaded successfully!');
         } catch (error) {
             console.error('Download error:', error);
-            this.showToast('Error downloading chart. Please try again.', 'error');
+            console.error('Error downloading chart. Please try again.');
         }
     }
 
@@ -1660,9 +1427,88 @@ class RetirementCalculator {
 // Initialize calculator and page navigation
 document.addEventListener('DOMContentLoaded', function() {
     try {
+        console.log('DOM Content Loaded - Initializing application...');
+        
+        // Test page elements exist
+        const pages = ['page-input', 'page-results', 'page-analysis', 'page-report'];
+        pages.forEach(pageId => {
+            const page = document.getElementById(pageId);
+            console.log(`Page ${pageId}:`, page ? 'Found' : 'NOT FOUND');
+        });
+        
+        // Test navigation buttons exist
+        const navButtons = document.querySelectorAll('.nav-btn');
+        console.log(`Found ${navButtons.length} navigation buttons`);
+        
+        // Initialize calculator
         const calculator = new RetirementCalculator();
-        showPage('page-input');
+        
+        // Set initial page
+        const initialResult = showPage('page-input');
+        console.log('Initial page setup result:', initialResult);
+        
+        // Add debug button to test navigation
+        const debugBtn = document.createElement('button');
+        debugBtn.textContent = 'Debug Navigation';
+        debugBtn.style.position = 'fixed';
+        debugBtn.style.top = '10px';
+        debugBtn.style.right = '10px';
+        debugBtn.style.zIndex = '9999';
+        debugBtn.style.background = '#ff4444';
+        debugBtn.style.color = 'white';
+        debugBtn.style.padding = '10px';
+        debugBtn.style.border = 'none';
+        debugBtn.style.borderRadius = '5px';
+        debugBtn.onclick = () => {
+            console.log('=== DEBUG NAVIGATION ===');
+            calculator.testPageNavigation();
+        };
+        document.body.appendChild(debugBtn);
+        
         console.log('Retirement Calculator initialized successfully');
+        
+        // Make functions globally available
+        window.calculator = calculator;
+        window.showPage = showPage;
+        window.debugNavigation = () => calculator.testPageNavigation();
+
+        // Popup helpers
+        window.openPopup = function(message, { title = 'Notice', primaryText = 'OK', onPrimary = null } = {}) {
+            const overlay = document.getElementById('app-popup');
+            const titleEl = overlay?.querySelector('#popup-title');
+            const contentEl = overlay?.querySelector('#popup-content');
+            const primaryBtn = overlay?.querySelector('#popup-primary');
+            const closeBtn = overlay?.querySelector('#popup-close-btn');
+            if (!overlay || !titleEl || !contentEl || !primaryBtn || !closeBtn) return;
+
+            titleEl.textContent = title;
+            contentEl.innerHTML = `<p>${message}</p>`;
+            primaryBtn.textContent = primaryText;
+
+            const cleanup = () => {
+                overlay.classList.remove('show');
+                overlay.setAttribute('aria-hidden', 'true');
+                closeBtn.removeEventListener('click', onClose);
+                primaryBtn.removeEventListener('click', onPrimaryClick);
+                overlay.removeEventListener('click', onOverlayClick);
+                document.removeEventListener('keydown', onEsc);
+            };
+
+            const onClose = () => cleanup();
+            const onPrimaryClick = () => { if (onPrimary) onPrimary(); cleanup(); };
+            const onOverlayClick = (e) => { if (e.target === overlay) cleanup(); };
+            const onEsc = (e) => { if (e.key === 'Escape') cleanup(); };
+
+            closeBtn.addEventListener('click', onClose);
+            primaryBtn.addEventListener('click', onPrimaryClick);
+            overlay.addEventListener('click', onOverlayClick);
+            document.addEventListener('keydown', onEsc);
+
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden', 'false');
+            primaryBtn.focus();
+        };
+        
     } catch (error) {
         console.error('Failed to initialize Retirement Calculator:', error);
         console.error('Failed to initialize the calculator. Please refresh the page.');
