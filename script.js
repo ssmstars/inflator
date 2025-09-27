@@ -1447,24 +1447,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const initialResult = showPage('page-input');
         console.log('Initial page setup result:', initialResult);
         
-        // Add debug button to test navigation
-        const debugBtn = document.createElement('button');
-        debugBtn.textContent = 'Debug Navigation';
-        debugBtn.style.position = 'fixed';
-        debugBtn.style.top = '10px';
-        debugBtn.style.right = '10px';
-        debugBtn.style.zIndex = '9999';
-        debugBtn.style.background = '#ff4444';
-        debugBtn.style.color = 'white';
-        debugBtn.style.padding = '10px';
-        debugBtn.style.border = 'none';
-        debugBtn.style.borderRadius = '5px';
-        debugBtn.onclick = () => {
-            console.log('=== DEBUG NAVIGATION ===');
-            calculator.testPageNavigation();
-        };
-        document.body.appendChild(debugBtn);
-        
         console.log('Retirement Calculator initialized successfully');
         
         // Make functions globally available
